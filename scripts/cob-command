@@ -1,0 +1,93 @@
+#!/bin/bash
+#### COMMON PARAMETERS
+usage=$(cat <<"EOF"
+USAGE:  ./InstallCob4.sh [-n][-r] [-c] [-u] [-pc]\n
+Where:\n
+  -n session name(example roscore)\n
+  -r robot name (example cob4-1)\n
+  -c comamnd (example "roscore")\n
+  -u user name(example robot)\n
+  -pc hostname where the job should be started\n
+EOF
+)
+
+function start_roscommand
+{
+	echo "------------------------------------------------"
+	echo "------------------------------------------------"
+	echo "------------------------------------------------"
+	echo "              Starting $SESSION_NAME            "
+	echo "------------------------------------------------"
+	echo "------------------------------------------------"
+	echo "------------------------------------------------"
+
+	ros_command="export ROSLAUNCH_SSH_UNKNOWN=1 && /u/$USER_ROS/git/care-o-bot/devel/env.sh $COMMAND"
+
+	su $USER -l -c "ssh $PC 'tmux new -d -s $SESSION_NAME'"
+	su $USER -l -c "ssh $PC 'tmux send -t $SESSION_NAME.0 $ros_command ENTER'"
+}
+
+
+if [[ "$@" =~ "--help" ]]; then echo -e $usage; exit 0; fi
+
+while [[ $# >=1 ]]
+do
+key="$1"
+shift
+case $key in
+    -n|--session-name)
+    SESSION_NAME="$1"
+    shift
+    ;;
+    -r|--robot)
+    ROBOT="$1"
+    shift
+    ;;
+    -c|--command)
+    COMMAND="$1"
+    shift
+    ;;
+    -u|--user)
+    USER_ROS="$1"
+    shift
+    ;;
+    -pc|--hostname)
+    PC="$1"
+    shift
+    ;;
+    *)
+    ;;
+esac
+done
+
+if [ -z "$ROBOT" ]; then
+		echo "no robot"
+    echo -e $usage
+    exit
+fi
+
+if [ -z "$SESSION_NAME" ]; then
+		echo "no session"
+    echo -e $usage
+    exit
+fi
+
+if [ -z "$COMMAND" ]; then
+		echo "no command"
+    echo -e $usage
+    exit
+fi
+
+if [ -z "$USER_ROS" ]; then
+		echo "no user"
+    echo "Use default robot user"
+    USER_ROS="robot"
+fi
+
+if [ -z "$PC" ]; then
+		echo "no pc"
+    echo "Use default pc b1"
+    PC="$ROBOT-b1"
+fi
+
+start_roscommand

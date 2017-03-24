@@ -1,0 +1,61 @@
+#!/bin/bash
+USER=myuser
+ROBOT=myrobotname
+
+sessions_list=$(tmux list-sessions | awk '/:/ { print $1 }')
+num=0
+blue='\e[1;34m'
+black='\e[0;30m'
+red='\e[0;31m'
+green='\e[1;32m'
+
+sessions_list="${sessions_list//:}"
+
+
+for session_name in $sessions_list
+do
+  num=$((num+1))
+  sessions[$num]=$session_name
+done
+
+echo -e "${blue}===========================================${NC}"
+echo -e "${blue}===========================================${NC}"
+echo -e "${blue}=================cob-stop==================${NC}"
+echo -e "${blue}===========================================${NC}"
+echo -e "${blue}===========================================${NC}"
+echo -e "${black}"Active sessions: "${NC}"
+
+for i in $(seq 1 $num) 
+do
+  echo "$i: ${sessions[i]}"
+done
+
+read -p "Please select a session number or 'all' to kill all the active sessions: " choice
+
+if ! [[ "$choice" =~ ^[1-$num]+$ || "$choice" == "all" ]]
+  then
+    echo -e "${red}========> $choice not valid , please choose a number session between 1-$num ${NC}"
+    exit
+fi
+
+if [[ "$choice" == "all" ]]
+	then
+    echo -e "${green}========> $choice - Stopping all sessions${NC}"
+    echo -e "${black}\n ${NC}"
+    for i in $(seq 1 $num) 
+      do
+				su $USER -l -c "tmux send -t ${sessions[$i]} C-c"
+				PID=$(cat /tmp/${sessions[$i]}.pid)
+				while [ -e /proc/$PID ]; do echo "still waiting for ${sessions[$i]} to stop (PID $PID)" && sleep 1; done
+				su $USER -l -c "tmux kill-session -t ${sessions[$i]}"
+		done
+else
+    echo -e "${green}========> $choice - Stopping session ${sessions[$choice]} ${NC}"
+    echo -e "${black}\n ${NC}"
+    su $USER -l -c "tmux send -t ${sessions[$choice]} C-c"
+    PID=$(cat /tmp/${sessions[$choice]}.pid)
+    while [ -e /proc/$PID ]; do echo "still waiting for ${sessions[$choice]} to stop (PID $PID)" && sleep 1; done
+    su $USER -l -c "tmux kill-session -t ${sessions[$choice]}"
+fi
+
+

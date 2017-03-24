@@ -1,5 +1,5 @@
 #!/bin/bash
-#### COMMON PARAMETERS
+
 usage=$(cat <<"EOF"
 USAGE:  ./InstallCob4.sh [-n][-r] [-c] [-u] [-pc]\n
 Where:\n
@@ -24,7 +24,9 @@ function start_roscommand
 	ros_command="export ROSLAUNCH_SSH_UNKNOWN=1 && /u/$USER_ROS/git/care-o-bot/devel/env.sh $COMMAND"
 
 	su $USER -l -c "ssh $PC 'tmux new -d -s $SESSION_NAME'"
-	su $USER -l -c "ssh $PC 'tmux send -t $SESSION_NAME.0 $ros_command ENTER'"
+	su $USER -l -c "ssh $PC 'tmux send -t $SESSION_NAME $ros_command ENTER'"
+  PID=pgrep $COMMAND
+  echo $PID > /tmp/$SESSION_NAME.pid
 }
 
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 ROBOT=myrobotname
+ROBOT_ENV=
 DISTRO=mydistro
 USER=myuser
 pcs="
@@ -91,4 +92,4 @@ fi
 until /u/$USER_ROS/git/care-o-bot/devel/env.sh rosparam get /robot_description > /dev/null ; do sleep 1; done
 
 #start state machine
-/usr/sbin/cob_command  -n bringup -r $ROBOT -c "roslaunch msh_statemachine machine.launch" -pc $ROBOT-t2 -u $USER
+/usr/sbin/cob_command  -n sm -r $ROBOT -c "roslaunch msh_statemachine machine.launch" -pc $ROBOT-t2 -u $USER

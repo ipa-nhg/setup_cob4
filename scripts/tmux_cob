@@ -1,0 +1,41 @@
+#!/bin/bash
+
+IP=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+
+client_list=$(nmap $IP/24 --system-dns | grep report | awk '{print $5}') 
+#echo $client_list
+
+function find-session
+{
+  SESSION_NAME=$1
+  for i in $client_list
+  do
+    sessions_list=$(ssh $i "tmux list-sessions" 2>&1| awk '/:/ { print $1 }')
+    sessions_list="${sessions_list//:}"
+    if [ "${sessions_list/$SESSION_NAME}" != "$sessions_list" ]; then
+      echo $i
+      break
+    fi
+  done
+}
+
+function list-sessions
+{
+  for i in $client_list
+  do
+    sessions_list=$(ssh $i "tmux list-sessions" 2>&1| awk '/:/ { print $1 }')
+    sessions_list="${sessions_list//:}"
+    echo $sessions_list
+  done
+}
+
+function list-sessions-v
+{
+  for i in $client_list
+  do
+    sessions_list=$(ssh $i "tmux list-sessions" 2>&1| awk '/:/ { print $1 }')
+    sessions_list="${sessions_list//:}"
+    echo $i:
+    echo $sessions_list
+  done
+}

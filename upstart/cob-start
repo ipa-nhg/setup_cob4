@@ -70,10 +70,10 @@ function log() {
 }
 
 #start roscore
-/usr/sbin/cob_command  -n roscore -r $ROBOT -c "roscore" -pc $ROBOT-b1 -u $USER
+/usr/sbin/cob-command  -n roscore -r $ROBOT -c "roscore" -pc $ROBOT-b1 -u $USER
 
 #wait for roscore
-until /u/$USER_ROS/git/care-o-bot/devel/env.sh rostopic list; do sleep 1; done
+until /u/$USER/git/care-o-bot/devel/env.sh rostopic list; do sleep 1; done
 
 #start bringup
-/usr/sbin/cob_command  -n bringup -r $ROBOT -c "roslaunch msh_bringup all.launch env-script:=/u/$USER/git/care-o-bot/devel/env.sh robot_env:=saturn-ingolstadt" -pc $ROBOT-b1 -u $USER
+/usr/sbin/cob-command  -n bringup -r $ROBOT -c "roslaunch\ cob_bringup\ robot.launch\ env-script:=/u/$USER/git/care-o-bot/devel/env.sh\ robot:=$ROBOT" -pc $ROBOT-b1 -u $USER

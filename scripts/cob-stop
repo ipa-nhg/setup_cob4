@@ -1,6 +1,6 @@
 #!/bin/bash
-USER=myuser
-ROBOT=myrobotname
+USER=robot
+ROBOT=cob4-5
 
 num=0
 blue='\e[1;34m'
@@ -8,7 +8,7 @@ black='\e[0;30m'
 red='\e[0;31m'
 green='\e[1;32m'
 
-source ./tmux_cob
+source /usr/sbin/tmux_cob
 sessions_list=$(list-sessions)
 
 for session_name in $sessions_list
@@ -51,7 +51,7 @@ if [[ "$choice" == "all" ]]
 else
     echo -e "${green}========> $choice - Stopping session ${sessions[$choice]} ${NC}"
     echo -e "${black}\n ${NC}"
-		source ./tmux_cob
+		source /usr/sbin/tmux_cob
 		PC=$(find-session ${sessions[$choice]})
     su $USER -l -c "ssh $PC 'tmux send -t ${sessions[$choice]} C-c'"
     PID=$(ssh $PC "cat /tmp/${sessions[$choice]}.pid" 2>&1)

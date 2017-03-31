@@ -2,8 +2,7 @@
 
 IP=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
 
-client_list=$(nmap $IP/24 --system-dns | grep report | awk '{print $5}') 
-#echo $client_list
+client_list=$(nmap $IP-100 --system-dns | grep report | awk '{print $5}') 
 
 function find-session
 {
@@ -35,7 +34,6 @@ function list-sessions-v
   do
     sessions_list=$(ssh $i "tmux list-sessions" 2>&1| awk '/:/ { print $1 }')
     sessions_list="${sessions_list//:}"
-    echo $i:
-    echo $sessions_list
+    echo "$sessions_list ($i)"
   done
 }

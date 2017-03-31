@@ -21,12 +21,11 @@ function start_roscommand
 	echo "------------------------------------------------"
 	echo "------------------------------------------------"
 
-	ros_command="export ROSLAUNCH_SSH_UNKNOWN=1 && /u/$USER_ROS/git/care-o-bot/devel/env.sh $COMMAND"
-
+	ros_command="/u/$USER/git/care-o-bot/devel/env.sh\ $COMMAND"
 	su $USER -l -c "ssh $PC 'tmux new -d -s $SESSION_NAME'"
 	su $USER -l -c "ssh $PC 'tmux send -t $SESSION_NAME $ros_command ENTER'"
-  PID=pgrep $COMMAND
-  echo $PID > /tmp/$SESSION_NAME.pid
+	PID=$(su $USER -l -c "ssh $PC 'pgrep $COMMAND' 2>&1")
+	su $USER -l -c "ssh $PC 'echo $PID > /tmp/$SESSION_NAME.pid'"
 }
 
 

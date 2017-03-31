@@ -45,7 +45,7 @@ if [[ "$choice" == "all" ]]
       do
 				su $USER -l -c "ssh $PC 'tmux send -t ${sessions[$i]} C-c'"
 				PID=$(ssh $PC "cat /tmp/${sessions[$choice]}.pid" 2>&1)
-				while [ssh $PC -e /proc/$PID ]; do echo "still waiting for ${sessions[$choice]} to stop (PID $PID)" && sleep 1; done
+				while ssh $PC stat /proc/$PID \> /dev/null 2\>\&1 ; do echo "still waiting for ${sessions[$choice]} to stop (PID $PID)" && sleep 1; done
 				su $USER -l -c "ssh $PC 'tmux kill-session -t ${sessions[$i]}'"
 		done
 else
@@ -55,6 +55,6 @@ else
 		PC=$(find-session ${sessions[$choice]})
     su $USER -l -c "ssh $PC 'tmux send -t ${sessions[$choice]} C-c'"
     PID=$(ssh $PC "cat /tmp/${sessions[$choice]}.pid" 2>&1)
-    while [ssh $PC -e /proc/$PID ]; do echo "still waiting for ${sessions[$choice]} to stop (PID $PID)" && sleep 1; done
+    while ssh $PC stat /proc/$PID \> /dev/null 2\>\&1 ; do echo "still waiting for ${sessions[$choice]} to stop (PID $PID)" && sleep 1; done
     su $USER -l -c "ssh $PC 'tmux kill-session -t ${sessions[$choice]}'"
 fi

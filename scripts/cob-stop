@@ -1,5 +1,4 @@
 #!/bin/bash
-USER=robot
 ROBOT=cob4-5
 
 num=0
@@ -43,16 +42,19 @@ if [[ "$choice" == "all" ]]
     echo -e "${black}\n ${NC}"
     for i in $(seq 1 $num) 
       do
+        PC=$(where-session ${sessions[$i]})
+        USER=$(who-session ${sessions[$i]})
 				su $USER -l -c "ssh $PC 'tmux send -t ${sessions[$i]} C-c'"
-				PID=$(ssh $PC "cat /tmp/${sessions[$choice]}.pid" 2>&1)
-				while ssh $PC stat /proc/$PID \> /dev/null 2\>\&1 ; do echo "still waiting for ${sessions[$choice]} to stop (PID $PID)" && sleep 1; done
+				PID=$(ssh $PC "cat /tmp/${sessions[$i]}.pid" 2>&1)
+				while ssh $PC stat /proc/$PID \> /dev/null 2\>\&1 ; do echo "still waiting for ${sessions[$i]} to stop (PID $PID)" && sleep 1; done
 				su $USER -l -c "ssh $PC 'tmux kill-session -t ${sessions[$i]}'"
 		done
 else
     echo -e "${green}========> $choice - Stopping session ${sessions[$choice]} ${NC}"
     echo -e "${black}\n ${NC}"
 		source /usr/sbin/tmux_cob
-		PC=$(find-session ${sessions[$choice]})
+		PC=$(where-session ${sessions[$choice]})
+		USER=$(who-session ${sessions[$choice]})
     su $USER -l -c "ssh $PC 'tmux send -t ${sessions[$choice]} C-c'"
     PID=$(ssh $PC "cat /tmp/${sessions[$choice]}.pid" 2>&1)
     while ssh $PC stat /proc/$PID \> /dev/null 2\>\&1 ; do echo "still waiting for ${sessions[$choice]} to stop (PID $PID)" && sleep 1; done

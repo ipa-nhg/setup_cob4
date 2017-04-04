@@ -2,19 +2,51 @@
 
 IP=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
 
-client_list=$(nmap --unprivileged $IP-98 --system-dns | grep report | awk '{print $5}') 
-
-function find-session
+client_list=$(nmap --unprivileged $IP/24 --system-dns | grep report | awk '{print $5}') 
+client_list="juansabeli"
+function where-session
 {
   SESSION_NAME=$1
   for i in $client_list
   do
-    sessions_list=$(ssh $i "tmux list-sessions" 2>&1| awk '/:/ { print $1 }')
-    sessions_list="${sessions_list//:}"
-    if [ "${sessions_list/$SESSION_NAME}" != "$sessions_list" ]; then
-      echo $i
-      break
-    fi
+    users_list=$(ps aux | grep 'tmux new' | awk '{ print $1 }'| sed '1 d' | sort | uniq)
+    for u in $users_list
+    do
+      sessions_list=$(su $u -l -c "ssh $i 'tmux list-sessions' 2>&1")
+      ret=${PIPESTATUS[0]}
+      if [ $ret != 0 ] ; then
+        false
+      else
+        sessions_list="${sessions_list//:}"
+        if [ "${sessions_list/$SESSION_NAME}" != "$sessions_list" ]; then
+          echo $i
+          break
+        fi
+      fi
+    done
+  done
+}
+
+function who-session
+{
+  SESSION_NAME=$1
+  for i in $client_list
+  do
+    users_list=$(ps aux | grep 'tmux new' | awk '{ print $1 }'| sed '1 d' | sort | uniq)
+    for u in $users_list
+    do
+      sessions_list=$(su $u -l -c "ssh $i 'tmux list-sessions' 2>&1")
+      ret=${PIPESTATUS[0]}
+      if [ $ret != 0 ] ; then
+        false
+      else
+        sessions_list="${sessions_list//:}"
+        if [ "${sessions_list/$SESSION_NAME}" != "$sessions_list" ]; then
+          echo $u
+          break
+        fi
+      fi
+    done
   done
 }
 
@@ -22,11 +54,19 @@ function list-sessions
 {
   for i in $client_list
   do
-    sessions_list=$(ssh $i "tmux list-sessions" 2>&1| awk '/:/ { print $1 }')
-    sessions_list="${sessions_list//:}"
-    if ! [[ -z "${sessions_list// }" ]]; then
-      echo $sessions_list
-    fi
+    users_list=$(ps aux | grep 'tmux new' | awk '{ print $1 }'| sed '1 d' | sort | uniq)
+    for u in $users_list
+    do
+      sessions_list=$(su $u -l -c "ssh $i 'tmux list-sessions' 2>&1")
+      ret=${PIPESTATUS[0]}
+      if [ $ret != 0 ] ; then
+        false
+      else
+        if ! [[ -z "${sessions_list// }" ]]; then
+          echo "${sessions_list%%:*}"
+        fi
+      fi
+    done
   done
 }
 
@@ -34,10 +74,18 @@ function list-sessions-v
 {
   for i in $client_list
   do
-    sessions_list=$(ssh $i "tmux list-sessions" 2>&1| awk '/:/ { print $1 }')
-    sessions_list="${sessions_list//:}"
-    if ! [[ -z "${sessions_list// }" ]]; then
-      echo "$sessions_list ($i)"
-    fi
+    users_list=$(ps aux | grep 'tmux new' | awk '{ print $1 }'| sed '1 d' | sort | uniq)
+    for u in $users_list
+    do
+      sessions_list=$(su $u -l -c "ssh $i 'tmux list-sessions' 2>&1")
+      ret=${PIPESTATUS[0]}
+      if [ $ret != 0 ] ; then
+        false
+      else
+        if ! [[ -z "${sessions_list// }" ]]; then
+          echo "${sessions_list%%:*} - $i - $u"
+        fi
+      fi
+    done
   done
 }
